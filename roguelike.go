@@ -2,17 +2,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/
-	"gitlab.com/rauko1753/gorl"
+	blt "github.com/dqnx/bearlibterminal"
 	"github.com/faiface/mainthread"
-	blt "bitbucket.org/cfyzium/bearlibterminal"
 )
 
 func run() {
-	fmt.Println("/r/roguelikedev Tutorial!")
+	blt.Open()
+	defer blt.Close();
+	
+	blt.Print(1, 1, "/r/roguelikedev Tutorial!")
+	blt.Refresh()
+	
+	for blt.Read() != blt.TK_CLOSE {
+	}  
 }
 
 func main() {
-	// Allows rendering to be fixed to the first os thread. Needed for Windows
 	mainthread.Run(run)
 }
