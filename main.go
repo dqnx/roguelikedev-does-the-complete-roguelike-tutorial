@@ -7,6 +7,13 @@ import (
 )
 
 func run() {
+	// Setup terminal
+	size
+	config := "window: size=80x25, cellsize=auto, title='Omni: menu'; font: default;"
+	blt.Set(config)
+	blt.Color("white")
+	blt.Bkcolor("black")
+	
 	blt.Open()
 	defer blt.Close();
 	
@@ -18,5 +25,6 @@ func run() {
 }
 
 func main() {
+	// Enables use of graphics calls on main os thread and goroutines together
 	mainthread.Run(run)
 }
