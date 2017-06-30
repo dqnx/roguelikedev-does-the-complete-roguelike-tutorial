@@ -17,7 +17,7 @@ func run() {
 	blt.Bkcolor("black")
 	
 	blt.Open()
-	defer blt.Close();
+	defer blt.Close()
 	
 	// Initial Screen
 	blt.Print(1, 1, "/r/roguelikedev Tutorial!")
