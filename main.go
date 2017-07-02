@@ -31,71 +31,41 @@ func run() {
 	const frametime = time.Nanosecond * time.Duration(1000000000/framesPerSecond)
 	fmt.Println("Frame time target:", frametime)
 
-	// Flags for synchronization
-	exit := make(chan bool, 1)
-	inputHandled := make(chan bool, 1)
-	updatedLogic := make(chan bool, 1)
-	drawn := make(chan bool, 1)
+	// Initialize game map and player
+	var player actor
+	player.Name = "Player"
+	player.Code = 0x40
+	player.Position.X = blt.TK_WIDTH / 2
+	player.Position.Y = blt.TK_HEIGHT / 2
 
 GameLoop:
 	for {
-		var start time.Time
-		var finish time.Duration
 
 		// Start loop execution timer.
+		var start time.Time
+		var finish time.Duration
 		start = time.Now()
 
 		// Handle input.
-		go func() {
-			//fmt.Println("Input handle entered")
-			exitBuffer := false
-
-			if blt.HasInput() {
-				//fmt.Println("Has input")
-				key := blt.Read()
-				switch key {
-				case blt.TK_CLOSE:
-					exitBuffer = true
-				case blt.TK_ENTER:
-					fmt.Println("entered")
-				}
+		exit := false
+		if blt.HasInput() {
+			key := blt.Read()
+			switch key {
+			case blt.TK_CLOSE:
+				exit = true
+			case blt.TK_ENTER:
+				fmt.Println("entered")
 			}
-
-			//fmt.Println("Input ran")
-			exit <- exitBuffer
-			//fmt.Println("Input send")
-			inputHandled <- true
-			//fmt.Println("Input handled")
-		}()
+		}
 
 		// Update game logic.
-		go func() {
-			//fmt.Println("Logic Update entered")
-			<-inputHandled
-			x := 1
-			x++
-			updatedLogic <- true
-			//fmt.Println("Logic Updated")
-		}()
+		// Nothing to do righ now...
 
 		// Draw calls.
-		go func() {
-			//fmt.Println("Draw entered")
-			<-updatedLogic
-			blt.Clear()
-			blt.Print(1, 1, "I have been drawn")
-			drawn <- true
-			//fmt.Println("Drawn")
-		}()
+		blt.Clear()
+		blt.Print(1, 1, "I have been drawn")
 
-		//fmt.Println(finish, remainder)
-		/*
-			If remainder is greater than zero, the loop is running behind the
-			desired frame time. This will cause frames per second to not meet the
-			target.
-		*/
-		<-drawn
-
+		// Render the buffer.
 		renderStart := time.Now()
 		blt.Refresh()
 		renderFinish := time.Since(renderStart)
@@ -104,7 +74,8 @@ GameLoop:
 		renderPercent := (renderFinish.Seconds() / finish.Seconds()) * 100.0
 		fmt.Println("Frame time:", finish, ", Render time:", renderFinish, ", Rendering:", renderPercent, "%")
 
-		if <-exit {
+		// Exit the game loop if the called by user.
+		if exit {
 			break GameLoop
 		}
 	}
@@ -112,10 +83,5 @@ GameLoop:
 
 func main() {
 	// Enables use of graphics calls on main os thread and goroutines together.
-	/*
-		go func() {
-			fmt.Println("Start")
-		}()
-	*/
 	mainthread.Run(run)
 }
