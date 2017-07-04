@@ -17,9 +17,9 @@ func run() {
 	size := v2.Vector{X: 80, Y: 25}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
 	blt.Set(config)
-	blt.Color(blt.ColorFromName("white"))
-	blt.BkColor(blt.ColorFromName("black"))
-
+	//blt.Color(blt.ColorFromName("orange"))
+	//blt.BkColor(blt.ColorFromARGB("black"))
+	blt.Composition(blt.TK_OFF)
 	// Open terminal.
 	blt.Open()
 	defer blt.Close()
@@ -35,8 +35,8 @@ func run() {
 	var player actor
 	player.Name = "Player"
 	player.Code = 0x40
-	player.Position.X = blt.TK_WIDTH / 2
-	player.Position.Y = blt.TK_HEIGHT / 2
+	player.Position.X = 10
+	player.Position.Y = 10
 
 GameLoop:
 	for {
@@ -55,14 +55,23 @@ GameLoop:
 				exit = true
 			case blt.TK_ENTER:
 				fmt.Println("entered")
+			case blt.TK_LEFT:
+				player.Position.X--
+			case blt.TK_RIGHT:
+				player.Position.X++
+			case blt.TK_UP:
+				player.Position.Y--
+			case blt.TK_DOWN:
+				player.Position.Y++
 			}
 		}
 
 		// Update game logic.
-		// Nothing to do righ now...
+		// Nothing to do right now..
 
 		// Draw calls.
 		blt.Clear()
+		blt.Put(player.Position.X, player.Position.Y, player.draw())
 		blt.Print(1, 1, "I have been drawn")
 
 		// Render the buffer.
