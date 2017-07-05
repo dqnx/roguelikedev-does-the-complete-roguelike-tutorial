@@ -14,7 +14,7 @@ func run() {
 	str := strconv.Itoa
 
 	// Setup terminal.
-	size := v2.Vector{X: 80, Y: 25}
+	size := v2.Vector{80, 25}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
 	blt.Set(config)
 	blt.Color(blt.ColorFromARGB(100, 24, 17, 22))
@@ -60,13 +60,13 @@ GameLoop:
 			case blt.TK_ENTER:
 				fmt.Println("entered")
 			case blt.TK_LEFT:
-				player.move(-1, 0)
+				player.move(v2.Vector{-1, 0})
 			case blt.TK_RIGHT:
-				player.move(1, 0)
+				player.move(v2.Vector{1, 0})
 			case blt.TK_UP:
-				player.move(0, -1)
+				player.move(v2.Vector{0, -1})
 			case blt.TK_DOWN:
-				player.move(0, 1)
+				player.move(v2.Vector{0, 1})
 			}
 		}
 
@@ -75,8 +75,11 @@ GameLoop:
 
 		// Draw calls.
 		blt.Clear()
-		blt.Color(blt.ColorFromName("orange"))
-		blt.Put(player.Position.X, player.Position.Y, player.draw())
+		for _, a := range actors {
+			color, code := a.draw()
+			blt.Color(blt.ColorFromName(color))
+			blt.Put(a.Position.X, a.Position.Y, code)
+    	}
 		blt.Print(1, 1, "I have been drawn")
 
 		// Render the buffer.
