@@ -17,7 +17,7 @@ func run() {
 	size := v2.Vector{X: 80, Y: 25}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
 	blt.Set(config)
-	//blt.Color(blt.ColorFromName("orange"))
+	blt.Color(blt.ColorFromARGB(100, 24, 17, 22))
 	//blt.BkColor(blt.ColorFromARGB("black"))
 	blt.Composition(blt.TK_OFF)
 	// Open terminal.
@@ -31,8 +31,13 @@ func run() {
 	const frametime = time.Nanosecond * time.Duration(1000000000/framesPerSecond)
 	fmt.Println("Frame time target:", frametime)
 
-	// Initialize game map and player
-	var player actor
+	// Initialize game map and player.
+	actors := make([]actor, 1)
+
+	var player *actor
+	// Ref to player as index 0.
+	player = &actors[0]
+
 	player.Name = "Player"
 	player.Code = 0x40
 	player.Position.X = 10
@@ -40,7 +45,6 @@ func run() {
 
 GameLoop:
 	for {
-
 		// Start loop execution timer.
 		var start time.Time
 		var finish time.Duration
@@ -56,13 +60,13 @@ GameLoop:
 			case blt.TK_ENTER:
 				fmt.Println("entered")
 			case blt.TK_LEFT:
-				player.Position.X--
+				player.move(-1, 0)
 			case blt.TK_RIGHT:
-				player.Position.X++
+				player.move(1, 0)
 			case blt.TK_UP:
-				player.Position.Y--
+				player.move(0, -1)
 			case blt.TK_DOWN:
-				player.Position.Y++
+				player.move(0, 1)
 			}
 		}
 
@@ -71,6 +75,7 @@ GameLoop:
 
 		// Draw calls.
 		blt.Clear()
+		blt.Color(blt.ColorFromName("orange"))
 		blt.Put(player.Position.X, player.Position.Y, player.draw())
 		blt.Print(1, 1, "I have been drawn")
 
