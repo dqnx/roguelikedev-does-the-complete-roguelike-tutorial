@@ -25,6 +25,26 @@ type Concrete struct {
 	Color string
 }
 
+// Tile is a container in the game world, representing the smallest unit of space.
+type Tile struct {
+	Concrete
+	BlocksMovement bool
+	BlocksSight bool
+}
+
+func (t Tile) draw() string, int {
+	return a.Color, a.Code
+}
+
+func createTile(tileType string, pos v2.Vector) Tile {
+	t := Tile{X: pos.X, Y: pos.Y}
+	switch tileType {
+		case "wall":
+			t.Code = 
+		case "ground":
+	}
+}
+
 // Actor holds values that describe a character, player, enemy, etc.
 type Actor struct {
 	Position v2.Vector
