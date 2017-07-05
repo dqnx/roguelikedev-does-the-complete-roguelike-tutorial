@@ -14,12 +14,11 @@ func run() {
 	str := strconv.Itoa
 
 	// Setup terminal.
-	size := v2.Vector{80, 25}
+	size := v2.Vector{80, 45}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
 	blt.Set(config)
-	blt.Color(blt.ColorFromARGB(100, 24, 17, 22))
-	//blt.BkColor(blt.ColorFromARGB("black"))
 	blt.Composition(blt.TK_OFF)
+	
 	// Open terminal.
 	blt.Open()
 	defer blt.Close()
@@ -31,13 +30,20 @@ func run() {
 	const frametime = time.Nanosecond * time.Duration(1000000000/framesPerSecond)
 	fmt.Println("Frame time target:", frametime)
 
-	// Initialize game map and player.
+	// Initialize game map.
+	mapSize := v2.Vector({80, 45})
+	
+	argb := blt.ColorFromARGB
+	colorDarkWall := argb(255, 0, 0, 100)
+	colorDarkGround := argb(255, 50, 50, 150)
+	
+	// Initialize entities.
 	actors := make([]actor, 1)
 
+	// Initialize player.
 	var player *actor
 	// Ref to player as index 0.
 	player = &actors[0]
-
 	player.Name = "Player"
 	player.Code = 0x40
 	player.Position.X = 10
@@ -79,7 +85,8 @@ GameLoop:
 			color, code := a.draw()
 			blt.Color(blt.ColorFromName(color))
 			blt.Put(a.Position.X, a.Position.Y, code)
-    	}
+    		}
+		
 		blt.Print(1, 1, "I have been drawn")
 
 		// Render the buffer.
