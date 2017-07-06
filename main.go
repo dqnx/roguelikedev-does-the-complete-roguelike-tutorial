@@ -15,7 +15,7 @@ func run() {
 	argb := blt.ColorFromARGB
 
 	// Setup terminal.
-	size := v2.Vector{X: 80, Y: 45}
+	size := v2.Vector{X: 80, Y: 60}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
 	blt.Set(config)
 	blt.Composition(blt.TK_OFF)
@@ -32,7 +32,7 @@ func run() {
 	fmt.Println("Frame time target:", frametime)
 
 	// Initialize game map.
-	mapSize := v2.Vector{X: 80, Y: 45}
+	mapSize := v2.Vector{X: 80, Y: 60}
 	worldMap := createMap(mapSize)
 
 	// Add 2 rooms.
@@ -46,14 +46,14 @@ func run() {
 	actors := make([]Actor, 1)
 
 	// Initialize player.
-	var player *Actor
-	// Ref to player as index 0.
-	player = &actors[0]
+	var player Actor
 	player.Name = "Player"
 	player.Code = 0x40
 	player.Color = argb(255, 255, 255, 255)
 	player.Position.X = 25
 	player.Position.Y = 23
+
+	actors[0] = player
 
 	// Initialize and NPC
 	npc := Actor{Name: "NPC"}
@@ -64,6 +64,7 @@ func run() {
 
 	actors = append(actors, npc)
 
+	var renderPercent float64
 GameLoop:
 	for {
 		// Start loop execution timer.
@@ -83,23 +84,23 @@ GameLoop:
 				fmt.Println("entered")
 			case blt.TK_LEFT:
 				d := v2.Vector{X: -1, Y: 0}
-				if !worldMap.collision(player, d) {
-					player.move(d)
+				if !worldMap.collision(&actors[0], d) {
+					actors[0].move(d)
 				}
 			case blt.TK_RIGHT:
 				d := v2.Vector{X: 1, Y: 0}
-				if !worldMap.collision(player, d) {
-					player.move(d)
+				if !worldMap.collision(&actors[0], d) {
+					actors[0].move(d)
 				}
 			case blt.TK_UP:
 				d := v2.Vector{X: 0, Y: -1}
-				if !worldMap.collision(player, d) {
-					player.move(d)
+				if !worldMap.collision(&actors[0], d) {
+					actors[0].move(d)
 				}
 			case blt.TK_DOWN:
 				d := v2.Vector{X: 0, Y: 1}
-				if !worldMap.collision(player, d) {
-					player.move(d)
+				if !worldMap.collision(&actors[0], d) {
+					actors[0].move(d)
 				}
 			}
 		}
@@ -110,13 +111,13 @@ GameLoop:
 		// Draw calls.
 		blt.Clear()
 
+		worldMap.draw()
+
 		for _, a := range actors {
 			color, code := a.draw()
 			blt.Color(color)
 			blt.Put(a.Position.X, a.Position.Y, code)
 		}
-
-		worldMap.draw()
 
 		// Render the buffer.
 		renderStart := time.Now()
@@ -124,14 +125,16 @@ GameLoop:
 		renderFinish := time.Since(renderStart)
 
 		finish = time.Since(start)
-		renderPercent := (renderFinish.Seconds() / finish.Seconds()) * 100.0
-		fmt.Println("Frame time:", finish, ", Render time:", renderFinish, ", Rendering:", renderPercent, "%")
+		renderPercent = (renderFinish.Seconds() / finish.Seconds()) * 100.0
+
+		//fmt.Println("Frame time:", finish, ", Render time:", renderFinish, ", Rendering:", renderPercent, "%")
 
 		// Exit the game loop if the called by user.
 		if exit {
 			break GameLoop
 		}
 	}
+	fmt.Println(renderPercent)
 }
 
 func main() {

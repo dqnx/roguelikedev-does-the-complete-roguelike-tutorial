@@ -84,6 +84,6 @@ func (a *Actor) move(delta v2.Vector) {
 	a.Position = v2.Add(delta, a.Position)
 }
 
-func (a *Actor) location() v2.Vector {
+func (a Actor) location() v2.Vector {
 	return a.Position
 }

@@ -62,7 +62,6 @@ func (t tileMap) get(v v2.Vector) *Tile {
 func (t tileMap) collision(m Moveable, delta v2.Vector) bool {
 	newPos := v2.Add(m.location(), delta)
 	target := t.get(newPos)
-
 	return target.BlocksMovement
 }
 
