@@ -71,7 +71,35 @@ func (t tileMap) createRoom(r rect) {
 	for x := r.X1; x <= r.X2; x++ {
 		// Add 1 to the y start, to leave buffer wall between rooms.
 		for y := r.Y1 + 1; y <= r.Y2; y++ {
-			Tiles[x][y] = createTile("floor", v2.Vector{x, y})
+			t.Tiles[x][y] = createTile("floor", v2.Vector{x, y})
 		}
+	}
+}
+
+// min returns the minimum of 2 integers
+func min(x, y int) int {
+	if x > y {
+		return y
+	}
+	return x
+}
+
+// max returns the maximum of 2 integers
+func max(x, y int) int{
+	if x < y {
+		return y
+	}
+	return x
+}
+
+func (t tileMap) tunnelHori(x1, x2, y) {
+	for x := min(x1, x2); x <= max(x1, x2); x++ {
+		t.Tiles[x][y] = createTile("floor", v2.Vector{x, y})
+	}
+}
+
+func (t tileMap) tunnelVerti(y1, y2, x) {
+	for y := min(y1, y2); y <= max(y1, y2); y++ {
+		t.Tiles[x][y] = createTile("floor", v2.Vector{x, y})
 	}
 }
