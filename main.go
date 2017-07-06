@@ -13,13 +13,13 @@ import (
 func run() {
 	str := strconv.Itoa
 	argb := blt.ColorFromARGB
-	
+
 	// Setup terminal.
-	size := v2.Vector{80, 45}
+	size := v2.Vector{X: 80, Y: 45}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
 	blt.Set(config)
 	blt.Composition(blt.TK_OFF)
-	
+
 	// Open terminal.
 	blt.Open()
 	defer blt.Close()
@@ -32,21 +32,21 @@ func run() {
 	fmt.Println("Frame time target:", frametime)
 
 	// Initialize game map.
-	mapSize := v2.Vector{80, 45}
+	mapSize := v2.Vector{X: 80, Y: 45}
 	worldMap := createMap(mapSize)
-	
+
 	// Add 2 rooms.
 	worldMap.createRoom(createRect(20, 15, 10, 15))
 	worldMap.createRoom(createRect(50, 15, 10, 15))
-	
+
 	// Connect the rooms.
 	worldMap.tunnelHori(25, 55, 23)
-	
+
 	// Initialize entities.
-	actors := make([]actor, 1)
+	actors := make([]Actor, 1)
 
 	// Initialize player.
-	var player *actor
+	var player *Actor
 	// Ref to player as index 0.
 	player = &actors[0]
 	player.Name = "Player"
@@ -54,9 +54,11 @@ func run() {
 	player.Color = argb(255, 255, 255, 255)
 	player.Position.X = 25
 	player.Position.Y = 23
-	
+
 	// Initialize and NPC
-	npc := actor{Name: "NPC " + str(i), Code: 0x40, Color: argb(255, 150, 20, 70)}
+	npc := Actor{Name: "NPC"}
+	npc.Code = 0x40
+	npc.Color = argb(255, 150, 20, 70)
 	npc.Position.X = 21
 	npc.Position.Y = 16
 
@@ -73,29 +75,29 @@ GameLoop:
 		exit := false
 		for blt.HasInput() {
 			key := blt.Read()
-			
+
 			switch key {
 			case blt.TK_CLOSE:
 				exit = true
 			case blt.TK_ENTER:
 				fmt.Println("entered")
 			case blt.TK_LEFT:
-				d := v2.Vector{-1, 0}
+				d := v2.Vector{X: -1, Y: 0}
 				if !worldMap.collision(player, d) {
 					player.move(d)
 				}
 			case blt.TK_RIGHT:
-				d := v2.Vector{1, 0}
+				d := v2.Vector{X: 1, Y: 0}
 				if !worldMap.collision(player, d) {
 					player.move(d)
 				}
 			case blt.TK_UP:
-				d := v2.Vector{0, -1}
+				d := v2.Vector{X: 0, Y: -1}
 				if !worldMap.collision(player, d) {
 					player.move(d)
 				}
 			case blt.TK_DOWN:
-				d := v2.Vector{0, 1}
+				d := v2.Vector{X: 0, Y: 1}
 				if !worldMap.collision(player, d) {
 					player.move(d)
 				}
@@ -107,13 +109,13 @@ GameLoop:
 
 		// Draw calls.
 		blt.Clear()
-		
+
 		for _, a := range actors {
 			color, code := a.draw()
-			blt.Color(blt.ColorFromName(color))
+			blt.Color(color)
 			blt.Put(a.Position.X, a.Position.Y, code)
-    		}
-		
+		}
+
 		worldMap.draw()
 
 		// Render the buffer.

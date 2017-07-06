@@ -24,29 +24,29 @@ type tileMap struct {
 
 // createMap makes a 2D array of Tiles, representing the play area or map.
 func createMap(size v2.Vector) tileMap {
-	x, y := size.x, size.y
+	x, y := size.X, size.Y
 	m := make([][]Tile, x)
-	
+
 	for i := 0; i < x; i++ {
-		m[i] = make([]int, y)
+		m[i] = make([]Tile, y)
 		for j := 0; j < y; j++ {
 			// Initialize all tiles to "wall"
-			m[i][j] = createTile("wall", v2.Vector{i, j})
+			m[i][j] = newTile("wall", v2.Vector{X: i, Y: j})
 		}
 	}
-	
+
 	var t tileMap
 	t.Tiles = m
-	
+
 	return t
 }
 
 // drawMap is a helper function to loop to each Tile and draw it.
 func (t tileMap) draw() {
-	for _, outer := range t {
-		for _,  inner := range outer {
+	for _, outer := range t.Tiles {
+		for _, inner := range outer {
 			color, code := inner.draw()
-			blt.Color(blt.ColorFromName(color))
+			blt.Color(color)
 			blt.Put(inner.Position.X, inner.Position.Y, code)
 		}
 	}
@@ -54,15 +54,15 @@ func (t tileMap) draw() {
 
 // get() returns a Tile pointer at the target vector.
 func (t tileMap) get(v v2.Vector) *Tile {
-	return &t.Tiles[v.X][x.Y]
+	return &t.Tiles[v.X][v.Y]
 }
 
 // checkCollision determines if a movement will move to a blocked tile.
 // In future, it should check the type of collision (unit, wall, item, etc.)
 func (t tileMap) collision(m Moveable, delta v2.Vector) bool {
-	newPos := v2.Add(m.Location(), delta)
+	newPos := v2.Add(m.location(), delta)
 	target := t.get(newPos)
-	
+
 	return target.BlocksMovement
 }
 
@@ -71,7 +71,7 @@ func (t tileMap) createRoom(r rect) {
 	for x := r.X1; x <= r.X2; x++ {
 		// Add 1 to the y start, to leave buffer wall between rooms.
 		for y := r.Y1 + 1; y <= r.Y2; y++ {
-			t.Tiles[x][y] = createTile("floor", v2.Vector{x, y})
+			t.Tiles[x][y] = newTile("floor", v2.Vector{X: x, Y: y})
 		}
 	}
 }
@@ -85,21 +85,21 @@ func min(x, y int) int {
 }
 
 // max returns the maximum of 2 integers
-func max(x, y int) int{
+func max(x, y int) int {
 	if x < y {
 		return y
 	}
 	return x
 }
 
-func (t tileMap) tunnelHori(x1, x2, y) {
+func (t tileMap) tunnelHori(x1, x2, y int) {
 	for x := min(x1, x2); x <= max(x1, x2); x++ {
-		t.Tiles[x][y] = createTile("floor", v2.Vector{x, y})
+		t.Tiles[x][y] = newTile("floor", v2.Vector{X: x, Y: y})
 	}
 }
 
-func (t tileMap) tunnelVerti(y1, y2, x) {
+func (t tileMap) tunnelVerti(y1, y2, x int) {
 	for y := min(y1, y2); y <= max(y1, y2); y++ {
-		t.Tiles[x][y] = createTile("floor", v2.Vector{x, y})
+		t.Tiles[x][y] = newTile("floor", v2.Vector{X: x, Y: y})
 	}
 }
