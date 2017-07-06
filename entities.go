@@ -22,7 +22,7 @@ type Movable interface {
 type Concrete struct {
 	Position v2.Vector
 	Code int
-	Color string
+	Color int
 }
 
 // Tile is a container in the game world, representing the smallest unit of space.
@@ -30,24 +30,41 @@ type Tile struct {
 	Concrete
 	BlocksMovement bool
 	BlocksSight bool
+	Dark bool
+	DarkCode int
+	DarkColor string
 }
 
 func (t Tile) draw() string, int {
-	return a.Color, a.Code
+	if dark {
+		return t.DarkColor, t.DarkCode	
+	}
+	return t.Color, t.Code
 }
 
 func createTile(tileType string, pos v2.Vector) Tile {
-	t := Tile{X: pos.X, Y: pos.Y}
+	t := Tile{X: pos.X, Y: pos.Y, Dark: false}
 	switch tileType {
 		case "wall":
-			t.Code = 
-		case "ground":
+			t.Code = 0x0023				// Hash
+			t.DarkCode = 0x0023			// Hash
+			t.Color = argb(255, 232, 232, 232) 	// Almost white
+			t.DarkColor = argb(255, 75, 75, 75)	// Dark grey
+			t.BlocksMovement = true
+			t.BlocksSight = true
+		case "floor":
+			t.Code = 0x00B7 			// Middle dot
+			t.DarkCode = 0x0020 			// Blank space
+			t.Color = argb(255, 232, 232, 232) 	// Almost white
+			t.DarkColor = argb(255, 15, 15, 15)	// Almost black
+			t.BlocksMovement = false
+			t.BlocksSight = false
 	}
 }
 
 // Actor holds values that describe a character, player, enemy, etc.
 type Actor struct {
-	Position v2.Vector
+	Name string
 	Concrete
 }
 
