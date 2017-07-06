@@ -12,7 +12,8 @@ import (
 
 func run() {
 	str := strconv.Itoa
-
+	argb := blt.ColorFromARGB
+	
 	// Setup terminal.
 	size := v2.Vector{80, 45}
 	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
@@ -31,11 +32,12 @@ func run() {
 	fmt.Println("Frame time target:", frametime)
 
 	// Initialize game map.
-	mapSize := v2.Vector({80, 45})
+	mapSize := v2.Vector{80, 45}
 	
-	argb := blt.ColorFromARGB
 	colorDarkWall := argb(255, 0, 0, 100)
 	colorDarkGround := argb(255, 50, 50, 150)
+	
+	worldMap := createMap(mapSize)
 	
 	// Initialize entities.
 	actors := make([]actor, 1)
@@ -60,19 +62,32 @@ GameLoop:
 		exit := false
 		if blt.HasInput() {
 			key := blt.Read()
+			
 			switch key {
 			case blt.TK_CLOSE:
 				exit = true
 			case blt.TK_ENTER:
 				fmt.Println("entered")
 			case blt.TK_LEFT:
-				player.move(v2.Vector{-1, 0})
+				d := v2.Vector{-1, 0}
+				if !worldMap.collision(player, d) {
+					player.move(d)
+				}
 			case blt.TK_RIGHT:
-				player.move(v2.Vector{1, 0})
+				d := v2.Vector{1, 0}
+				if !worldMap.collision(player, d) {
+					player.move(d)
+				}
 			case blt.TK_UP:
-				player.move(v2.Vector{0, -1})
+				d := v2.Vector{0, -1}
+				if !worldMap.collision(player, d) {
+					player.move(d)
+				}
 			case blt.TK_DOWN:
-				player.move(v2.Vector{0, 1})
+				d := v2.Vector{0, 1}
+				if !worldMap.collision(player, d) {
+					player.move(d)
+				}
 			}
 		}
 
@@ -81,11 +96,14 @@ GameLoop:
 
 		// Draw calls.
 		blt.Clear()
+		
 		for _, a := range actors {
 			color, code := a.draw()
 			blt.Color(blt.ColorFromName(color))
 			blt.Put(a.Position.X, a.Position.Y, code)
     		}
+		
+		worldMap.draw()
 		
 		blt.Print(1, 1, "I have been drawn")
 
