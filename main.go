@@ -33,11 +33,14 @@ func run() {
 
 	// Initialize game map.
 	mapSize := v2.Vector{80, 45}
-	
-	colorDarkWall := argb(255, 0, 0, 100)
-	colorDarkGround := argb(255, 50, 50, 150)
-	
 	worldMap := createMap(mapSize)
+	
+	// Add 2 rooms.
+	worldMap.createRoom(createRect(20, 15, 10, 15))
+	worldMap.createRoom(createRect(50, 15, 10, 15))
+	
+	// Connect the rooms.
+	worldMap.tunnelHori(25, 55, 23)
 	
 	// Initialize entities.
 	actors := make([]actor, 1)
@@ -48,8 +51,16 @@ func run() {
 	player = &actors[0]
 	player.Name = "Player"
 	player.Code = 0x40
-	player.Position.X = 10
-	player.Position.Y = 10
+	player.Color = argb(255, 255, 255, 255)
+	player.Position.X = 25
+	player.Position.Y = 23
+	
+	// Initialize and NPC
+	npc := actor{Name: "NPC " + str(i), Code: 0x40, Color: argb(255, 150, 20, 70)}
+	npc.Position.X = 21
+	npc.Position.Y = 16
+
+	actors = append(actors, npc)
 
 GameLoop:
 	for {
@@ -60,7 +71,7 @@ GameLoop:
 
 		// Handle input.
 		exit := false
-		if blt.HasInput() {
+		for blt.HasInput() {
 			key := blt.Read()
 			
 			switch key {
@@ -104,8 +115,6 @@ GameLoop:
     		}
 		
 		worldMap.draw()
-		
-		blt.Print(1, 1, "I have been drawn")
 
 		// Render the buffer.
 		renderStart := time.Now()
