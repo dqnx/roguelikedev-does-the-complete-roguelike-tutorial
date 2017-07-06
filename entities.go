@@ -18,6 +18,8 @@ type Movable interface {
 	location() v2.Vector
 }
 
+
+
 // Concrete is a physical object in the game world, with position and graphics.
 type Concrete struct {
 	Position v2.Vector
