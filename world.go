@@ -17,8 +17,8 @@ func createMap(size v2.Vector) tileMap {
 	for i := 0; i < x; i++ {
 		m[i] = make([]int, y)
 		for j := 0; j < y; j++ {
-			// Initialize all tiles to "floor"
-			m[i][j] = createTile("floor", v2.Vector{i, j})
+			// Initialize all tiles to "wall"
+			m[i][j] = createTile("wall", v2.Vector{i, j})
 		}
 	}
 	
