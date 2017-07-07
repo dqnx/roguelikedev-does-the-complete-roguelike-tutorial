@@ -9,6 +9,23 @@ type rect struct {
 	X1, X2, Y1, Y2 int
 }
 
+// center returns the middle coordinates of a rect, rounding down fractions.
+func (r rect) center() v2.Vector {
+	var v v2.Vector
+	v.X = int((r.X1 + r.X2) / 2)
+	v.Y = int((r.Y1 + r.Y2) / 2)
+
+	return v
+}
+
+func (r rect) intersect(r2 rect) bool {
+	intersects := false
+	if r.X1 <= r2.X2 && r.X2 >= r2.X1 && r.Y1 <= r2.Y2 && r.Y2 >= r2.Y1 {
+		intersects = true
+	}
+	return intersects
+
+}
 func createRect(x, y, w, h int) rect {
 	var r rect
 	r.X1 = x

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -14,15 +15,16 @@ func run() {
 	str := strconv.Itoa
 	argb := blt.ColorFromARGB
 
-	// Setup terminal.
-	size := v2.Vector{X: 80, Y: 60}
-	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", cellsize=auto, title='roguelike'; font: default;"
-	blt.Set(config)
-	blt.Composition(blt.TK_OFF)
-
 	// Open terminal.
 	blt.Open()
 	defer blt.Close()
+
+	// Setup terminal.
+	size := v2.Vector{X: 80, Y: 40}
+	config := "window: size=" + str(size.X) + "x" + str(size.Y) + ", title='roguelike'; font: ./fonts/FSEX300.ttf, size=20x20"
+	blt.Set(config)
+	blt.Composition(blt.TK_OFF)
+
 	blt.Print(1, 1, "/r/roguelikedev Tutorial!")
 	blt.Refresh()
 
@@ -31,16 +33,72 @@ func run() {
 	const frametime = time.Nanosecond * time.Duration(1000000000/framesPerSecond)
 	fmt.Println("Frame time target:", frametime)
 
+	// Seed random number generator.
+	rgen := rand.New(rand.NewSource(1001))
+
 	// Initialize game map.
-	mapSize := v2.Vector{X: 80, Y: 60}
+	roomMaxSize := 10
+	roomMinSize := 6
+	maxRooms := 30
+	var rooms []rect
+
+	mapSize := v2.Vector{X: 80, Y: 40}
 	worldMap := createMap(mapSize)
+	var playerStartPos v2.Vector
+	var npcStartPos v2.Vector
 
-	// Add 2 rooms.
-	worldMap.createRoom(createRect(20, 15, 10, 15))
-	worldMap.createRoom(createRect(50, 15, 10, 15))
+	for numRooms, i := 0, 0; i < maxRooms; i++ {
+		w := roomMinSize + rgen.Intn(roomMaxSize-roomMinSize)
+		h := roomMinSize + rgen.Intn(roomMaxSize-roomMinSize)
 
-	// Connect the rooms.
-	worldMap.tunnelHori(25, 55, 23)
+		x := rgen.Intn(mapSize.X - w - 1)
+		y := rgen.Intn(mapSize.Y - h - 1)
+
+		newRoom := createRect(x, y, w, h)
+		overlap := false
+
+	OverlapCheck:
+		for _, otherRoom := range rooms {
+			if newRoom.intersect(otherRoom) {
+				overlap = true
+				break OverlapCheck
+			}
+		}
+
+		if !overlap {
+			worldMap.createRoom(newRoom)
+			roomCenter := newRoom.center()
+
+			if numRooms == 0 {
+				// If its the first room, place the player.
+				playerStartPos = roomCenter
+			} else {
+				if numRooms == 1 {
+					// If second room, place npc.
+					npcStartPos = roomCenter
+				}
+
+				// After the first room, tunnels must be carved.
+				// Get the previous room's center.
+				prevRoom := rooms[numRooms-1].center()
+
+				// Randomly move vertically or horizontally to tunnel.
+				if rgen.Intn(1) == 1 {
+					// Move horizontally then vertically.
+					worldMap.tunnelHori(prevRoom.X, roomCenter.X, prevRoom.Y)
+					worldMap.tunnelVerti(prevRoom.Y, roomCenter.Y, roomCenter.X)
+				} else {
+					// Move vertically then horizontally.
+					worldMap.tunnelVerti(prevRoom.Y, roomCenter.Y, prevRoom.X)
+					worldMap.tunnelHori(prevRoom.X, roomCenter.X, roomCenter.Y)
+				}
+			}
+
+			rooms = append(rooms, newRoom)
+			numRooms++
+		}
+
+	}
 
 	// Initialize entities.
 	actors := make([]Actor, 1)
@@ -50,8 +108,7 @@ func run() {
 	player.Name = "Player"
 	player.Code = 0x40
 	player.Color = argb(255, 255, 255, 255)
-	player.Position.X = 25
-	player.Position.Y = 23
+	player.Position = playerStartPos
 
 	actors[0] = player
 
@@ -59,8 +116,7 @@ func run() {
 	npc := Actor{Name: "NPC"}
 	npc.Code = 0x40
 	npc.Color = argb(255, 150, 20, 70)
-	npc.Position.X = 21
-	npc.Position.Y = 16
+	npc.Position = npcStartPos
 
 	actors = append(actors, npc)
 
