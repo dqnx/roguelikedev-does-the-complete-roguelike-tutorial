@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	blt "github.com/dqnx/bearlibterminal"
@@ -27,6 +28,13 @@ func run() {
 
 	blt.Print(1, 1, "/r/roguelikedev Tutorial!")
 	blt.Refresh()
+
+	// Create draw call buffer channel. Used to create a queue of cells to be drawn.
+	drawQueue := make(chan Cell, 1000)
+
+	// Flag to notify the render routine that the rest of the loop is finished.
+	loopFinished := false
+	bufferDrawn := false
 
 	// Time between draws, in nanoseconds.
 	const framesPerSecond = 60
@@ -120,14 +128,51 @@ func run() {
 
 	actors = append(actors, npc)
 
-	var renderPercent float64
+	// Mutex for checking loop state.
+	var mutex = &sync.Mutex{}
+
+	// Logic and Render lop synchronization.
+	renderDone := make(chan bool)
+
+	// Start parallel rendering.
+	go func() {
+		for {
+			select {
+			// More drawing to do...
+			case drawInfo := <-drawQueue:
+				blt.Color(drawInfo.Color)
+				blt.Put(drawInfo.Position.X, drawInfo.Position.Y, drawInfo.Code)
+
+				mutex.Lock()
+				bufferDrawn = true
+				mutex.Unlock()
+			// Drawing done.
+			default:
+				mutex.Lock()
+				if loopFinished {
+					if bufferDrawn {
+						blt.Refresh()
+						// Reset buffer flag.
+						bufferDrawn = false
+						fmt.Println("Screen drawn.")
+					}
+					// Reset loop flag.
+					loopFinished = false
+					renderDone <- true
+				} // else, keep waiting
+				mutex.Unlock()
+			}
+		}
+	}()
+
+	// Initial sceen draw.
+	worldMap.draw(drawQueue)
+	for _, a := range actors {
+		drawQueue <- a.draw()
+	}
+
 GameLoop:
 	for {
-		// Start loop execution timer.
-		var start time.Time
-		var finish time.Duration
-		start = time.Now()
-
 		// Handle input.
 		exit := false
 		for blt.HasInput() {
@@ -142,21 +187,25 @@ GameLoop:
 				d := v2.Vector{X: -1, Y: 0}
 				if !worldMap.collision(&actors[0], d) {
 					actors[0].move(d)
+					drawQueue <- actors[0].draw()
 				}
 			case blt.TK_RIGHT:
 				d := v2.Vector{X: 1, Y: 0}
 				if !worldMap.collision(&actors[0], d) {
 					actors[0].move(d)
+					drawQueue <- actors[0].draw()
 				}
 			case blt.TK_UP:
 				d := v2.Vector{X: 0, Y: -1}
 				if !worldMap.collision(&actors[0], d) {
 					actors[0].move(d)
+					drawQueue <- actors[0].draw()
 				}
 			case blt.TK_DOWN:
 				d := v2.Vector{X: 0, Y: 1}
 				if !worldMap.collision(&actors[0], d) {
 					actors[0].move(d)
+					drawQueue <- actors[0].draw()
 				}
 			}
 		}
@@ -164,33 +213,18 @@ GameLoop:
 		// Update game logic.
 		// Nothing to do right now..
 
-		// Draw calls.
-		blt.Clear()
+		mutex.Lock()
+		loopFinished = true
+		mutex.Unlock()
 
-		worldMap.draw()
-
-		for _, a := range actors {
-			color, code := a.draw()
-			blt.Color(color)
-			blt.Put(a.Position.X, a.Position.Y, code)
-		}
-
-		// Render the buffer.
-		renderStart := time.Now()
-		blt.Refresh()
-		renderFinish := time.Since(renderStart)
-
-		finish = time.Since(start)
-		renderPercent = (renderFinish.Seconds() / finish.Seconds()) * 100.0
-
-		//fmt.Println("Frame time:", finish, ", Render time:", renderFinish, ", Rendering:", renderPercent, "%")
+		// Wait for rendering to finish.
+		<-renderDone
 
 		// Exit the game loop if the called by user.
 		if exit {
 			break GameLoop
 		}
 	}
-	fmt.Println(renderPercent)
 }
 
 func main() {

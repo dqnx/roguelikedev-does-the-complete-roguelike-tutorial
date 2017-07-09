@@ -1,9 +1,6 @@
 package main
 
-import (
-	blt "github.com/dqnx/bearlibterminal"
-	v2 "github.com/dqnx/vector2"
-)
+import v2 "github.com/dqnx/vector2"
 
 type rect struct {
 	X1, X2, Y1, Y2 int
@@ -59,12 +56,10 @@ func createMap(size v2.Vector) tileMap {
 }
 
 // drawMap is a helper function to loop to each Tile and draw it.
-func (t tileMap) draw() {
+func (t tileMap) draw(c chan Cell) {
 	for _, outer := range t.Tiles {
 		for _, inner := range outer {
-			color, code := inner.draw()
-			blt.Color(color)
-			blt.Put(inner.Position.X, inner.Position.Y, code)
+			c <- inner.draw()
 		}
 	}
 }

@@ -5,10 +5,17 @@ import (
 	v2 "github.com/dqnx/vector2"
 )
 
+// Cell contains the necessary info for Blt to draw a cell in its grid.
+type Cell struct {
+	Position v2.Vector
+	Color    uint32
+	Code     int
+}
+
 // Drawable defines entities which can be drawn to the console.
 type Drawable interface {
 	// draw returns the color and code integers for use in blt.
-	draw() (uint32, int)
+	draw() Cell
 }
 
 // Moveable defines entities which have a changeable world position.
@@ -37,11 +44,16 @@ type Tile struct {
 	DarkColor      uint32
 }
 
-func (t Tile) draw() (uint32, int) {
+func (t Tile) draw() Cell {
+	c := Cell{Position: t.Position}
 	if t.Dark {
-		return t.DarkColor, t.DarkCode
+		c.Color = t.DarkColor
+		c.Code = t.DarkCode
+	} else { // Light
+		c.Color = t.Color
+		c.Code = t.Code
 	}
-	return t.Color, t.Code
+	return c
 }
 
 func newTile(tileType string, pos v2.Vector) Tile {
@@ -76,8 +88,8 @@ type Actor struct {
 	Concrete
 }
 
-func (a Actor) draw() (uint32, int) {
-	return a.Color, a.Code
+func (a Actor) draw() Cell {
+	return Cell{Position: a.Position, Color: a.Color, Code: a.Code}
 }
 
 func (a *Actor) move(delta v2.Vector) {
